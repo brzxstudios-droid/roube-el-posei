@@ -13,6 +13,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Preparar o jogo (abre o zip, se houver)
+        run: |
+          echo "Arquivos no repositorio:"; ls -la
+          if [ -f jogo.zip ]; then
+            unzip -o jogo.zip
+          else
+            for z in *.zip; do [ -f "$z" ] && unzip -o "$z"; done
+          fi
+          if [ ! -f package.json ]; then
+            p=$(find . -name package.json -not -path "./node_modules/*" | head -n1)
+            if [ -n "$p" ]; then cp -r "$(dirname "$p")"/. .; fi
+          fi
+          if [ ! -f package.json ]; then
+            echo "ERRO: nao achei o jogo. Suba o jogo.zip (ou os arquivos) na raiz do repositorio."
+            exit 1
+          fi
+          ls
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -49,4 +66,3 @@ jobs:
           tag_name: apk-${{ github.run_number }}
           name: Roube el Posei APK ${{ github.run_number }}
           files: android/app/build/outputs/apk/debug/app-debug.apk
-          
